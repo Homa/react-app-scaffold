@@ -5,6 +5,11 @@ import { useTranslation } from 'react-i18next'
 function App() {
   const { t, i18n } = useTranslation()
 
+  // Set default language to English on component mount
+  React.useEffect(() => {
+    i18n.changeLanguage('en');
+  }, []);
+
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng)
   }
@@ -16,6 +21,8 @@ function App() {
         <div className="language-switcher">
           <button onClick={() => changeLanguage('en')}>English</button>
           <button onClick={() => changeLanguage('es')}>Español</button>
+          <button onClick={() => changeLanguage('ja')}>日本語</button>
+          <button onClick={() => changeLanguage('kr')}>한국어</button>
         </div>
       </header>
       <TodoList />

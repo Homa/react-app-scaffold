@@ -4,6 +4,7 @@ import { cleanup } from '@testing-library/react'
 import matchers from '@testing-library/jest-dom/matchers'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import enResources from '../locales/en'
 
 expect.extend(matchers)
 
@@ -18,18 +19,7 @@ i18n.use(initReactI18next).init({
   ns: ['translation'],
   defaultNS: 'translation',
   resources: {
-    en: {
-      translation: {
-        app: {
-          title: 'Todo App',
-          loading: 'Loading...',
-          error: 'Error: {{message}}',
-          addTodo: 'Add Todo',
-          addTodoPlaceholder: 'Add a new todo',
-          emptyList: 'No todos yet. Add one above!'
-        }
-      }
-    }
+    en: enResources
   },
   interpolation: {
     escapeValue: false
