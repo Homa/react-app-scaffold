@@ -3,6 +3,7 @@ import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import TodoList from '../TodoList'
 import todoReducer, { addTodo } from '../../store/features/todoSlice'
+import { describe, it, expect } from 'vitest'
 
 // Helper function to create a test store with custom state
 const createTestStore = (initialState = {}) => {
