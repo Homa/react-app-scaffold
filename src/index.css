@@ -10,4 +10,29 @@ body {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.language-switcher {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.language-switcher button {
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.language-switcher button:hover {
+  background-color: #e0e0e0;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 } 

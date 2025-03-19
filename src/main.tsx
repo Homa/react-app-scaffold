@@ -1,5 +1,6 @@
 // Comment out this line until we install the package
 // import './wdyr.ts';
+import './i18n';
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Provider } from 'react-redux'
