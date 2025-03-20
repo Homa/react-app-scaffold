@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { resolve } from 'path';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -20,13 +20,22 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        '@': resolve(__dirname, './src')
+        '@': path.resolve(__dirname, './src')
       }
+    }
+  },
+  build: {
+    rollupOptions: {
+      plugins: [visualizer()]
     }
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src')
     }
+  },
+  define: {
+    // Handle process.env for development/production modes
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
   }
 }); 

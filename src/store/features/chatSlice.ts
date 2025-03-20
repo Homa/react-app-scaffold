@@ -1,187 +1,187 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { ChatState, SendMessageRequest, SendMessageResponse, Message } from '../../types';
+import { sendMessageToMistral, sendMessageToMockApi } from '../../services/api';
 
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
-}
-
-export interface Conversation {
-  id: string;
-  title: string;
-  messages: Message[];
-  createdAt: number;
-}
-
-interface ChatState {
-  conversations: Conversation[];
-  activeConversationId: string | null;
-  loading: boolean;
-  error: string | null;
-  model: string;
-  memoryLimit: number; // Number of previous messages to include
-}
-
-// Create a new conversation with a default title
-const createNewConversation = (): Conversation => ({
-  id: Date.now().toString(),
-  title: 'New Conversation',
-  messages: [],
-  createdAt: Date.now(),
-});
-
-// Initial state with one empty conversation
-const initialConversation = createNewConversation();
-const initialState: ChatState = {
-  conversations: [initialConversation],
-  activeConversationId: initialConversation.id,
-  loading: false,
-  error: null,
-  model: 'llama3',
-  memoryLimit: 10 // Default to 10 messages
+// Simple UUID generator
+const generateId = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 };
 
+// Async thunk for sending a message
 export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
-  async ({ content, model }: { content: string, model: string }, { getState, rejectWithValue }) => {
+  async ({ content, model }: SendMessageRequest, { getState, rejectWithValue }) => {
     try {
-      // Create user message
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content,
-        timestamp: Date.now()
-      };
+      const state = getState() as { chat: ChatState };
+      const { conversations, activeConversationId, memoryLimit } = state.chat;
       
-      // Get current state
-      const state = getState() as any;
-      const { memoryLimit } = state.chat;
-      const activeConversation = state.chat.conversations.find(
-        (c: Conversation) => c.id === state.chat.activeConversationId
-      );
+      // Get active conversation
+      const conversation = conversations.find(conv => conv.id === activeConversationId);
       
-      // Prepare conversation history for API
-      const conversationHistory = [...(activeConversation?.messages || [])];
-      const messageHistory = conversationHistory
-        .slice(-memoryLimit) // Use the configurable memory limit
-        .map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }));
+      // Prepare previous messages for context
+      const previousMessages = conversation ? 
+        conversation.messages
+          .slice(-memoryLimit * 2) // Apply memory limit
+          .map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })) : 
+        [];
       
-      // Add current message to history for API call
-      const apiMessages = [
-        ...messageHistory,
-        { role: 'user', content }
-      ];
+      // Determine which API to use based on model
+      let response: SendMessageResponse;
       
-      // Call Ollama API with conversation history
-      const response = await axios.post('http://localhost:11434/api/chat', {
-        model,
-        messages: apiMessages,
-        stream: false
-      });
-      
-      // Create assistant message from response
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.data.message.content,
-        timestamp: Date.now() + 1
-      };
-      
-      // Check if this is the first message to update conversation title
-      const isFirstMessage = conversationHistory.length === 0;
-      
-      return { 
-        userMessage, 
-        assistantMessage,
-        updateTitle: isFirstMessage,
-        title: content.length > 30 ? content.substring(0, 30) + '...' : content
-      };
-    } catch (error) {
-      if (error instanceof Error) {
-        return rejectWithValue(error.message);
+      if (model.startsWith('mistral')) {
+        // Use Mistral API
+        response = await sendMessageToMistral(content, model, previousMessages);
+      } else {
+        // Use mock API for other models
+        response = await sendMessageToMockApi(content, model);
       }
-      return rejectWithValue('An unknown error occurred');
+      
+      return { userMessage: content, assistantMessage: response };
+    } catch (error) {
+      return rejectWithValue('Failed to send message. Please try again.');
     }
   }
 );
 
-export const chatSlice = createSlice({
+// Initial state
+const initialState: ChatState = {
+  conversations: [],
+  activeConversationId: null,
+  loading: false,
+  error: null,
+  model: 'mistral-tiny',
+  memoryLimit: 10
+};
+
+// Create slice
+const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
+    // Set the active model
     setModel: (state, action: PayloadAction<string>) => {
       state.model = action.payload;
     },
+    
+    // Create a new chat
     newChat: (state) => {
-      const newConversation = createNewConversation();
-      state.conversations.push(newConversation);
-      state.activeConversationId = newConversation.id;
+      const id = generateId();
+      const now = Date.now();
+      
+      state.conversations.unshift({
+        id,
+        title: 'New Conversation',
+        messages: [],
+        createdAt: now,
+        updatedAt: now
+      });
+      
+      state.activeConversationId = id;
     },
+    
+    // Switch to a different conversation
     switchConversation: (state, action: PayloadAction<string>) => {
       state.activeConversationId = action.payload;
     },
+    
+    // Delete a conversation
     deleteConversation: (state, action: PayloadAction<string>) => {
-      state.conversations = state.conversations.filter(conv => conv.id !== action.payload);
-      // If we deleted the active conversation, switch to the most recent one
-      if (state.activeConversationId === action.payload) {
-        state.activeConversationId = state.conversations.length > 0 
-          ? state.conversations[state.conversations.length - 1].id 
-          : null;
+      const index = state.conversations.findIndex(conv => conv.id === action.payload);
+      
+      if (index !== -1) {
+        state.conversations.splice(index, 1);
         
-        // If we deleted all conversations, create a new one
-        if (state.activeConversationId === null) {
-          const newConversation = createNewConversation();
-          state.conversations.push(newConversation);
-          state.activeConversationId = newConversation.id;
+        // If we deleted the active conversation, set a new active one
+        if (state.activeConversationId === action.payload) {
+          state.activeConversationId = state.conversations.length > 0 ? state.conversations[0].id : null;
         }
       }
     },
+    
+    // Set memory limit
     setMemoryLimit: (state, action: PayloadAction<number>) => {
       state.memoryLimit = action.payload;
-    },
+    }
   },
   extraReducers: (builder) => {
     builder
+      // Handle pending state
       .addCase(sendMessage.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
+      // Handle successful message
       .addCase(sendMessage.fulfilled, (state, action) => {
-        state.loading = false;
+        const { userMessage, assistantMessage } = action.payload;
+        
+        // If no active conversation, create one
+        if (!state.activeConversationId) {
+          const id = generateId();
+          const now = Date.now();
+          
+          state.conversations.unshift({
+            id,
+            title: userMessage.substring(0, 30) + (userMessage.length > 30 ? '...' : ''),
+            messages: [],
+            createdAt: now,
+            updatedAt: now
+          });
+          
+          state.activeConversationId = id;
+        }
         
         // Find the active conversation
-        const activeConversation = state.conversations.find(
-          conv => conv.id === state.activeConversationId
-        );
+        const conversation = state.conversations.find(conv => conv.id === state.activeConversationId);
         
-        if (activeConversation) {
-          // Add messages to the active conversation
-          activeConversation.messages.push(action.payload.userMessage);
-          activeConversation.messages.push(action.payload.assistantMessage);
+        if (conversation) {
+          // Add user message
+          conversation.messages.push({
+            id: generateId(),
+            content: userMessage,
+            role: 'user',
+            timestamp: Date.now() - 1000 // Slightly earlier than assistant message
+          });
           
-          // Update conversation title if this is the first message
-          if (action.payload.updateTitle) {
-            activeConversation.title = action.payload.title;
+          // Add assistant message
+          conversation.messages.push({
+            id: assistantMessage.id,
+            content: assistantMessage.content,
+            role: assistantMessage.role,
+            timestamp: assistantMessage.timestamp
+          });
+          
+          // Update conversation title if it's the first message
+          if (conversation.messages.length === 2) {
+            conversation.title = userMessage.substring(0, 30) + (userMessage.length > 30 ? '...' : '');
+          }
+          
+          // Update timestamp
+          conversation.updatedAt = Date.now();
+          
+          // Apply memory limit if needed
+          if (state.memoryLimit > 0 && conversation.messages.length > state.memoryLimit * 2) {
+            // Keep the most recent messages within the limit (pairs of user/assistant messages)
+            conversation.messages = conversation.messages.slice(-state.memoryLimit * 2);
           }
         }
+        
+        state.loading = false;
       })
+      // Handle error
       .addCase(sendMessage.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = action.payload as string || 'An unknown error occurred';
       });
   }
 });
 
-export const { 
-  setModel, 
-  newChat, 
-  switchConversation, 
-  deleteConversation,
-  setMemoryLimit 
-} = chatSlice.actions;
+// Export actions and reducer
+export const { setModel, newChat, switchConversation, deleteConversation, setMemoryLimit } = chatSlice.actions;
 export default chatSlice.reducer; 
