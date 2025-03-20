@@ -329,4 +329,71 @@ header {
   padding: 5px;
   border-radius: 4px;
   border: 1px solid #ccc;
+}
+
+/* Add these styles to your existing CSS */
+.chat-interface-wrapper {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chat-toggle-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #0084ff;
+  color: white;
+  border: none;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.chat-toggle-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.chat-app {
+  width: 800px;
+  height: 600px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 850px) {
+  .chat-app {
+    width: 90vw;
+    height: 80vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-interface-wrapper {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .chat-app {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
+  }
 } 

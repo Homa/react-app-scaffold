@@ -19,6 +19,7 @@ const ChatInterface = () => {
   const [input, setInput] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [chatVisible, setChatVisible] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Get the active conversation
@@ -67,128 +68,146 @@ const ChatInterface = () => {
     setShowSettings(!showSettings);
   };
 
+  const toggleChatVisibility = () => {
+    setChatVisible(!chatVisible);
+  };
+
   return (
-    <div className="chat-app">
-      {/* Sidebar for conversations */}
-      <div className={`sidebar ${showSidebar ? 'open' : 'closed'}`}>
-        <div className="sidebar-header">
-          <button className="new-chat-button" onClick={handleNewChat}>
-            {t('app.newChat')}
-          </button>
-          <button className="toggle-sidebar" onClick={toggleSidebar}>
-            {showSidebar ? '←' : '→'}
-          </button>
-        </div>
-        <div className="conversation-list">
-          {conversations.map(conv => (
-            <div 
-              key={conv.id} 
-              className={`conversation-item ${conv.id === activeConversationId ? 'active' : ''}`}
-              onClick={() => handleSwitchConversation(conv.id)}
-            >
-              <span className="conversation-title">{conv.title}</span>
-              <button 
-                className="delete-conversation" 
-                onClick={(e) => handleDeleteConversation(conv.id, e)}
-                title={t('app.deleteConversation')}
-              >
-                ×
+    <div className="chat-interface-wrapper">
+      {/* Toggle button to show/hide chat */}
+      <button 
+        className="chat-toggle-button"
+        onClick={toggleChatVisibility}
+        aria-label={chatVisible ? t('app.hideChat') : t('app.showChat')}
+      >
+        {chatVisible ? '✕' : '💬'}
+      </button>
+      
+      {/* Main chat app */}
+      {chatVisible && (
+        <div className="chat-app">
+          {/* Sidebar for conversations */}
+          <div className={`sidebar ${showSidebar ? 'open' : 'closed'}`}>
+            <div className="sidebar-header">
+              <button className="new-chat-button" onClick={handleNewChat}>
+                {t('app.newChat')}
+              </button>
+              <button className="toggle-sidebar" onClick={toggleSidebar}>
+                {showSidebar ? '←' : '→'}
               </button>
             </div>
-          ))}
-        </div>
-      </div>
-      
-      {/* Main chat area */}
-      <div className="chat-container">
-        <div className="chat-controls">
-          <button className="toggle-sidebar-mobile" onClick={toggleSidebar}>
-            ☰
-          </button>
-          <select value={model} onChange={handleModelChange} className="model-selector">
-            <option value="llama3">Llama 3</option>
-            <option value="mistral">Mistral</option>
-            <option value="gemma">Gemma</option>
-            <option value="phi3">Phi-3</option>
-          </select>
-          <button onClick={handleNewChat} className="new-chat-button-mobile">
-            {t('app.newChat')}
-          </button>
-          <button onClick={toggleSettings} className="settings-button">
-            ⚙️
-          </button>
-        </div>
-        
-        {showSettings && (
-          <div className="settings-panel">
-            <h3>{t('app.settings')}</h3>
-            <div className="setting-item">
-              <label htmlFor="memory-limit">{t('app.memoryLimit')}</label>
-              <select 
-                id="memory-limit" 
-                value={memoryLimit} 
-                onChange={handleMemoryLimitChange}
-                className="memory-selector"
-              >
-                <option value="5">5 {t('app.messages')}</option>
-                <option value="10">10 {t('app.messages')}</option>
-                <option value="20">20 {t('app.messages')}</option>
-                <option value="50">50 {t('app.messages')}</option>
-                <option value="100">100 {t('app.messages')}</option>
-              </select>
+            <div className="conversation-list">
+              {conversations.map(conv => (
+                <div 
+                  key={conv.id} 
+                  className={`conversation-item ${conv.id === activeConversationId ? 'active' : ''}`}
+                  onClick={() => handleSwitchConversation(conv.id)}
+                >
+                  <span className="conversation-title">{conv.title}</span>
+                  <button 
+                    className="delete-conversation" 
+                    onClick={(e) => handleDeleteConversation(conv.id, e)}
+                    title={t('app.deleteConversation')}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
-        )}
-        
-        <div className="messages-container">
-          {messages.length === 0 ? (
-            <div className="empty-chat">
-              <p>{t('app.emptyChat')}</p>
+          
+          {/* Main chat area */}
+          <div className="chat-container">
+            <div className="chat-controls">
+              <button className="toggle-sidebar-mobile" onClick={toggleSidebar}>
+                ☰
+              </button>
+              <select value={model} onChange={handleModelChange} className="model-selector">
+                <option value="llama3">Llama 3</option>
+                <option value="mistral">Mistral</option>
+                <option value="gemma">Gemma</option>
+                <option value="phi3">Phi-3</option>
+              </select>
+              <button onClick={handleNewChat} className="new-chat-button-mobile">
+                {t('app.newChat')}
+              </button>
+              <button onClick={toggleSettings} className="settings-button">
+                ⚙️
+              </button>
             </div>
-          ) : (
-            messages.map(message => (
-              <div 
-                key={message.id} 
-                className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
-              >
-                <div className="message-content">
-                  {message.content}
-                </div>
-                <div className="message-timestamp">
-                  {new Date(message.timestamp).toLocaleTimeString()}
+            
+            {showSettings && (
+              <div className="settings-panel">
+                <h3>{t('app.settings')}</h3>
+                <div className="setting-item">
+                  <label htmlFor="memory-limit">{t('app.memoryLimit')}</label>
+                  <select 
+                    id="memory-limit" 
+                    value={memoryLimit} 
+                    onChange={handleMemoryLimitChange}
+                    className="memory-selector"
+                  >
+                    <option value="5">5 {t('app.messages')}</option>
+                    <option value="10">10 {t('app.messages')}</option>
+                    <option value="20">20 {t('app.messages')}</option>
+                    <option value="50">50 {t('app.messages')}</option>
+                    <option value="100">100 {t('app.messages')}</option>
+                  </select>
                 </div>
               </div>
-            ))
-          )}
-          {loading && (
-            <div className="message assistant-message loading">
-              <div className="message-content">
-                {t('app.thinking')}
-              </div>
+            )}
+            
+            <div className="messages-container">
+              {messages.length === 0 ? (
+                <div className="empty-chat">
+                  <p>{t('app.emptyChat')}</p>
+                </div>
+              ) : (
+                messages.map(message => (
+                  <div 
+                    key={message.id} 
+                    className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                  >
+                    <div className="message-content">
+                      {message.content}
+                    </div>
+                    <div className="message-timestamp">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </div>
+                  </div>
+                ))
+              )}
+              {loading && (
+                <div className="message assistant-message loading">
+                  <div className="message-content">
+                    {t('app.thinking')}
+                  </div>
+                </div>
+              )}
+              {error && (
+                <div className="error-message">
+                  {t('app.error', { message: error })}
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
-          )}
-          {error && (
-            <div className="error-message">
-              {t('app.error', { message: error })}
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            
+            <form onSubmit={handleSendMessage} className="input-form">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={t('app.messagePlaceholder')}
+                disabled={loading}
+                required
+              />
+              <button type="submit" disabled={loading}>
+                {loading ? t('app.sending') : t('app.send')}
+              </button>
+            </form>
+          </div>
         </div>
-        
-        <form onSubmit={handleSendMessage} className="input-form">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={t('app.messagePlaceholder')}
-            disabled={loading}
-            required
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? t('app.sending') : t('app.send')}
-          </button>
-        </form>
-      </div>
+      )}
     </div>
   );
 };

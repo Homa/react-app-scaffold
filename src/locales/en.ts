@@ -14,7 +14,9 @@ export const resources = {
       deleteConversation: "Delete conversation",
       settings: "Settings",
       memoryLimit: "Memory Limit",
-      messages: "messages"
+      messages: "messages",
+      hideChat: "Hide Chat",
+      showChat: "Show Chat"
     }
   }
 };
