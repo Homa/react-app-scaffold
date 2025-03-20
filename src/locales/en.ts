@@ -11,7 +11,10 @@ export const resources = {
       emptyChat: "No messages yet. Start a conversation!",
       clearChat: "Clear Chat",
       newChat: "New Chat",
-      deleteConversation: "Delete conversation"
+      deleteConversation: "Delete conversation",
+      settings: "Settings",
+      memoryLimit: "Memory Limit",
+      messages: "messages"
     }
   }
 };

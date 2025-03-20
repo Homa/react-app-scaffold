@@ -11,7 +11,10 @@ export const resources = {
       emptyChat: "メッセージはまだありません。会話を始めましょう！",
       clearChat: "チャットをクリア",
       newChat: "新しい会話",
-      deleteConversation: "会話を削除"
+      deleteConversation: "会話を削除",
+      settings: "設定",
+      memoryLimit: "メモリ制限",
+      messages: "メッセージ"
     }
   }
 };

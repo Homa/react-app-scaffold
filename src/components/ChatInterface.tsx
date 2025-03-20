@@ -1,16 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppSelector } from '../hooks/useAppSelector';
 import { useAppDispatch } from '../hooks/useAppDispatch';
-import { sendMessage, setModel, newChat, switchConversation, deleteConversation } from '../store/features/chatSlice';
+import { sendMessage, setModel, newChat, switchConversation, deleteConversation, setMemoryLimit } from '../store/features/chatSlice';
 import { useTranslation } from 'react-i18next';
 
 const ChatInterface = () => {
   const { t } = useTranslation();
-  const { conversations, activeConversationId, loading, error, model } = useAppSelector(state => state.chat);
+  const { 
+    conversations, 
+    activeConversationId, 
+    loading, 
+    error, 
+    model,
+    memoryLimit 
+  } = useAppSelector(state => state.chat);
   const dispatch = useAppDispatch();
   
   const [input, setInput] = useState('');
   const [showSidebar, setShowSidebar] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Get the active conversation
@@ -49,6 +57,14 @@ const ChatInterface = () => {
   
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
+  };
+  
+  const handleMemoryLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch(setMemoryLimit(Number(e.target.value)));
+  };
+  
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
   };
 
   return (
@@ -98,7 +114,31 @@ const ChatInterface = () => {
           <button onClick={handleNewChat} className="new-chat-button-mobile">
             {t('app.newChat')}
           </button>
+          <button onClick={toggleSettings} className="settings-button">
+            ⚙️
+          </button>
         </div>
+        
+        {showSettings && (
+          <div className="settings-panel">
+            <h3>{t('app.settings')}</h3>
+            <div className="setting-item">
+              <label htmlFor="memory-limit">{t('app.memoryLimit')}</label>
+              <select 
+                id="memory-limit" 
+                value={memoryLimit} 
+                onChange={handleMemoryLimitChange}
+                className="memory-selector"
+              >
+                <option value="5">5 {t('app.messages')}</option>
+                <option value="10">10 {t('app.messages')}</option>
+                <option value="20">20 {t('app.messages')}</option>
+                <option value="50">50 {t('app.messages')}</option>
+                <option value="100">100 {t('app.messages')}</option>
+              </select>
+            </div>
+          </div>
+        )}
         
         <div className="messages-container">
           {messages.length === 0 ? (

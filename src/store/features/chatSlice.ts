@@ -21,6 +21,7 @@ interface ChatState {
   loading: boolean;
   error: string | null;
   model: string;
+  memoryLimit: number; // Number of previous messages to include
 }
 
 // Create a new conversation with a default title
@@ -38,14 +39,15 @@ const initialState: ChatState = {
   activeConversationId: initialConversation.id,
   loading: false,
   error: null,
-  model: 'llama3'
+  model: 'llama3',
+  memoryLimit: 10 // Default to 10 messages
 };
 
 export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
   async ({ content, model }: { content: string, model: string }, { getState, rejectWithValue }) => {
     try {
-      // Add user message to state before sending to API
+      // Create user message
       const userMessage: Message = {
         id: Date.now().toString(),
         role: 'user',
@@ -53,10 +55,32 @@ export const sendMessage = createAsyncThunk(
         timestamp: Date.now()
       };
       
-      // Call Ollama API
+      // Get current state
+      const state = getState() as any;
+      const { memoryLimit } = state.chat;
+      const activeConversation = state.chat.conversations.find(
+        (c: Conversation) => c.id === state.chat.activeConversationId
+      );
+      
+      // Prepare conversation history for API
+      const conversationHistory = [...(activeConversation?.messages || [])];
+      const messageHistory = conversationHistory
+        .slice(-memoryLimit) // Use the configurable memory limit
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+      
+      // Add current message to history for API call
+      const apiMessages = [
+        ...messageHistory,
+        { role: 'user', content }
+      ];
+      
+      // Call Ollama API with conversation history
       const response = await axios.post('http://localhost:11434/api/chat', {
         model,
-        messages: [{ role: 'user', content }],
+        messages: apiMessages,
         stream: false
       });
       
@@ -68,10 +92,8 @@ export const sendMessage = createAsyncThunk(
         timestamp: Date.now() + 1
       };
       
-      // Update conversation title based on first user message
-      const isFirstMessage = (getState() as any).chat.conversations.find(
-        (c: Conversation) => c.id === (getState() as any).chat.activeConversationId
-      ).messages.length === 0;
+      // Check if this is the first message to update conversation title
+      const isFirstMessage = conversationHistory.length === 0;
       
       return { 
         userMessage, 
@@ -118,7 +140,10 @@ export const chatSlice = createSlice({
           state.activeConversationId = newConversation.id;
         }
       }
-    }
+    },
+    setMemoryLimit: (state, action: PayloadAction<number>) => {
+      state.memoryLimit = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -152,5 +177,11 @@ export const chatSlice = createSlice({
   }
 });
 
-export const { setModel, newChat, switchConversation, deleteConversation } = chatSlice.actions;
+export const { 
+  setModel, 
+  newChat, 
+  switchConversation, 
+  deleteConversation,
+  setMemoryLimit 
+} = chatSlice.actions;
 export default chatSlice.reducer; 

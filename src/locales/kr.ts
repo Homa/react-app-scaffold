@@ -11,7 +11,10 @@ export const resources = {
       emptyChat: "아직 메시지가 없습니다. 대화를 시작하세요!",
       clearChat: "채팅 지우기",
       newChat: "새 대화",
-      deleteConversation: "대화 삭제"
+      deleteConversation: "대화 삭제",
+      settings: "설정",
+      memoryLimit: "메모리 제한",
+      messages: "메시지"
     }
   }
 };
