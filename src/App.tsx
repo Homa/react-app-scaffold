@@ -1,5 +1,5 @@
 import React from 'react'
-import TodoList from './components/TodoList'
+import ChatInterface from './components/ChatInterface'
 import { useTranslation } from 'react-i18next'
 
 function App() {
@@ -25,7 +25,7 @@ function App() {
           <button onClick={() => changeLanguage('kr')}>한국어</button>
         </div>
       </header>
-      <TodoList />
+      <ChatInterface />
     </div>
   )
 }

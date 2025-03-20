@@ -1,12 +1,17 @@
 export const resources = {
   translation: {
     app: {
-      title: "Lista de Tareas",
+      title: "Asistente de Chat IA",
       loading: "Cargando...",
+      thinking: "Pensando...",
       error: "Error: {{message}}",
-      addTodo: "Añadir Tarea",
-      addTodoPlaceholder: "Añadir una nueva tarea",
-      emptyList: "No hay tareas aún. ¡Añade una arriba!"
+      send: "Enviar",
+      sending: "Enviando...",
+      messagePlaceholder: "Escribe tu mensaje aquí...",
+      emptyChat: "No hay mensajes todavía. ¡Inicia una conversación!",
+      clearChat: "Limpiar Chat",
+      newChat: "Nueva Conversación",
+      deleteConversation: "Eliminar conversación"
     }
   }
 };

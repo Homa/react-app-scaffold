@@ -1,12 +1,17 @@
 export const resources = {
   translation: {
     app: {
-      title: "タスク管理アプリ",
+      title: "AIチャットアシスタント",
       loading: "読み込み中...",
+      thinking: "考え中...",
       error: "エラー: {{message}}",
-      addTodo: "タスクを追加",
-      addTodoPlaceholder: "新しいタスクを追加",
-      emptyList: "タスクはまだありません。上に追加してください！"
+      send: "送信",
+      sending: "送信中...",
+      messagePlaceholder: "メッセージを入力してください...",
+      emptyChat: "メッセージはまだありません。会話を始めましょう！",
+      clearChat: "チャットをクリア",
+      newChat: "新しい会話",
+      deleteConversation: "会話を削除"
     }
   }
 };

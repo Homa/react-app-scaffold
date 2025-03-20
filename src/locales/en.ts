@@ -1,12 +1,17 @@
 export const resources = {
   translation: {
     app: {
-      title: "Todo App",
+      title: "AI Chat Assistant",
       loading: "Loading...",
+      thinking: "Thinking...",
       error: "Error: {{message}}",
-      addTodo: "Add Todo",
-      addTodoPlaceholder: "Add a new todo",
-      emptyList: "No todos yet. Add one above!"
+      send: "Send",
+      sending: "Sending...",
+      messagePlaceholder: "Type your message here...",
+      emptyChat: "No messages yet. Start a conversation!",
+      clearChat: "Clear Chat",
+      newChat: "New Chat",
+      deleteConversation: "Delete conversation"
     }
   }
 };
